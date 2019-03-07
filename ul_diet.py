@@ -1,1 +1,1 @@
-"""dupa 123"""
+import diet
