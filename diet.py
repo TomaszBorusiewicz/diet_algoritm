@@ -47,10 +47,3 @@ class Diet:
         kilocalories_demand = monthly_demand[0]
         print(int(kilocalories_demand / kilocalories * 100))
         print(kilocalories)
-
-
-dupa = Diet(100, 180, "male")
-dupa.make_diet()
-dupa.print_monthly_mekroelements_demand()
-print(dupa.kilocalorie_demand_for_month() / 30)
-
