@@ -1,3 +1,11 @@
+from pymongo import MongoClient
+client = MongoClient("localhost", 27017)
+
+db = client.local
+collection = client.products
+
+
+print(db)
 
 class Diet:
 
@@ -47,3 +55,4 @@ class Diet:
         kilocalories_demand = monthly_demand[0]
         print(int(kilocalories_demand / kilocalories * 100))
         print(kilocalories)
+
