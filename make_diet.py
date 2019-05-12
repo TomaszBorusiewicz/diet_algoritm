@@ -1,4 +1,4 @@
-from diet_algoritm.diet import Diet
+from diet import Diet
 
 # weight = input("Podaj swoją wagę[kg]: ")
 # height = input("Podaj swoj wzrost[cm]: ")

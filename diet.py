@@ -58,6 +58,24 @@ class Diet(object):
         random_id = random.randint(0, row_count)
         return self.get_product_from_csv(random_id)
 
+    def check_if_actual_price_not_exceed_given_price(self, actual_price):
+        if actual_price < self.price:
+            return True
+
+    def get_macro_which_is_more_than_given_percent_if_exist(self, carbohydrates, protein, fat, percent):
+        more_than = []
+        all_demands = self.makroelements_demand_for_month()
+        if int(carbohydrates) > int(all_demands["weglowodany"] * int(percent)):
+            more_than.append("weglowodany")
+        if int(protein) > int(all_demands["bialko"] * int(percent)):
+            more_than.append("bialko")
+        if int(fat) > int(all_demands["tluszcz"] * int(percent)):
+            more_than.append("tluszcz")
+        if more_than:
+            return more_than
+        else:
+            return False
+
     def create_random_diet(self):
         products_list = []
         actual_price = 0
@@ -65,10 +83,10 @@ class Diet(object):
         actual_protein = 0
         actual_fat = 0
         all_demands = self.makroelements_demand_for_month()
-
-        while actual_price < self.price:
+        while (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.9)
+                and int(actual_protein) < int(all_demands["bialko"] * 0.9)
+                and int(actual_fat) < int(all_demands["tluszcz"] * 0.9)):
             try:
-                print(actual_price, actual_carbohydrates, actual_protein, actual_fat)
                 random_product = self.get_random_product_from_csv()
                 actual_carbohydrates += float(random_product[3])
                 actual_protein += float(random_product[1])
@@ -77,6 +95,32 @@ class Diet(object):
                 products_list.append(random_product[0])
             except TypeError:
                 continue
+            if self.check_if_actual_price_not_exceed_given_price(actual_price):
+                continue
+            else:
+                self.create_random_diet()
+        macros_gt_than_90_percent = self.get_macro_which_is_more_than_given_percent_if_exist(actual_carbohydrates,
+                                                                                             actual_protein,
+                                                                                             actual_fat,
+                                                                                             90)
+        if macros_gt_than_90_percent:
+            while (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.9)
+                   and int(actual_protein) < int(all_demands["bialko"] * 0.9)
+                   and int(actual_fat) < int(all_demands["tluszcz"] * 0.9)):
+                try:
+                    random_product = self.get_random_product_from_csv()
+                    actual_carbohydrates += float(random_product[3])
+                    actual_protein += float(random_product[1])
+                    actual_fat += float(random_product[2])
+                    actual_price += float(random_product[4])
+                    products_list.append(random_product[0])
+                except TypeError:
+                    continue
+                if self.check_if_actual_price_not_exceed_given_price(actual_price):
+                    continue
+                else:
+                    self.create_random_diet()
+        print(actual_carbohydrates, actual_protein, actual_fat, actual_price)
         return products_list
 
 
