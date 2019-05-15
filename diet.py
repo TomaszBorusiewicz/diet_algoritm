@@ -9,7 +9,7 @@ class Diet(object):
         self.height = height
         self.sex = sex
         self.price = price
-        self.max_searching_counter = 10000000
+        self.max_searching_counter = 1000000
 
     def kilocalorie_demand_for_month(self):
         return int((33 * self.weight) * 30)
