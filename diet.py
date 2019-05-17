@@ -37,13 +37,17 @@ class Diet(object):
 
     def print_monthly_mekroelements_demand(self):
         makroelements = self.makroelements_demand_for_month()
-        print("Twoje miesięczne zapotrzebowanie to {} kcal w tym makroelementy: \n"
-              "Węglowodany: {} gram\n"
-              "Białko: {} gram\n"
-              "Tłuszcze: {} gram".format(makroelements["kilokalorie"],
-                                         makroelements["weglowodany"],
-                                         makroelements["bialko"],
-                                         makroelements["tluszcz"]))
+        print("Twoje miesięczne zapotrzebowanie to {} kcal (dziennie: {}) w tym makroelementy: \n"
+              "Węglowodany: {} gram (dziennie: {})\n"
+              "Białko: {} gram (dziennie: {})\n"
+              "Tłuszcze: {} gram (dziennie: {})".format(makroelements["kilokalorie"],
+                                                        makroelements["kilokalorie"] / 30,
+                                                        makroelements["weglowodany"],
+                                                        makroelements["weglowodany"] / 30,
+                                                        makroelements["bialko"],
+                                                        makroelements["bialko"] / 30,
+                                                        makroelements["tluszcz"],
+                                                        makroelements["tluszcz"] / 30))
 
     def get_product_from_csv(self, id):
         with open(self.file_with_products, encoding="utf8") as file:
@@ -166,7 +170,7 @@ class Diet(object):
                     and int(actual_protein) < int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
                 try:
-                    random_product = self.get_product_from_csv_where_catbo_is_less_than(0.5)
+                    random_product = self.get_product_from_csv_where_catbo_is_less_than(2.0)
                     actual_carbohydrates += float(random_product[3])
                     actual_protein += float(random_product[1])
                     actual_fat += float(random_product[2])
@@ -182,7 +186,7 @@ class Diet(object):
                     and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
                 try:
-                    random_product = self.get_product_from_csv_where_protein_is_less_than(0.5)
+                    random_product = self.get_product_from_csv_where_protein_is_less_than(2.0)
                     actual_carbohydrates += float(random_product[3])
                     actual_protein += float(random_product[1])
                     actual_fat += float(random_product[2])
@@ -198,7 +202,7 @@ class Diet(object):
                     and int(actual_protein) < int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
                 try:
-                    random_product = self.get_product_from_csv_where_fat_is_less_than(0.5)
+                    random_product = self.get_product_from_csv_where_fat_is_less_than(2.0)
                     actual_carbohydrates += float(random_product[3])
                     actual_protein += float(random_product[1])
                     actual_fat += float(random_product[2])
@@ -214,7 +218,7 @@ class Diet(object):
                     and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
                 try:
-                    random_product = self.get_product_from_csv_where_catbo_and_protein_is_less_than(0.5)
+                    random_product = self.get_product_from_csv_where_catbo_and_protein_is_less_than(2.0)
                     actual_carbohydrates += float(random_product[3])
                     actual_protein += float(random_product[1])
                     actual_fat += float(random_product[2])
@@ -230,7 +234,7 @@ class Diet(object):
                     and int(actual_protein) < int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
                 try:
-                    random_product = self.get_product_from_csv_where_carbo_and_fat_is_less_than(0.5)
+                    random_product = self.get_product_from_csv_where_carbo_and_fat_is_less_than(2.0)
                     actual_carbohydrates += float(random_product[3])
                     actual_protein += float(random_product[1])
                     actual_fat += float(random_product[2])
@@ -246,7 +250,7 @@ class Diet(object):
                     and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
                 try:
-                    random_product = self.get_product_from_csv_where_protein_and_fat_is_less_than(0.5)
+                    random_product = self.get_product_from_csv_where_protein_and_fat_is_less_than(2.0)
                     actual_carbohydrates += float(random_product[3])
                     actual_protein += float(random_product[1])
                     actual_fat += float(random_product[2])

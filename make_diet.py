@@ -11,10 +11,6 @@ def display_menu():
     print("2. Wyjdz z kreatora")
 
 
-
-
-
-
 while True:
     choice = input("Wybierz co chcesz zrobić 1/2: ")
     # choice = "1"
@@ -25,7 +21,7 @@ while True:
         # height = input("Podaj swoj wzrost[cm]: ")
         # sex = input("Podaj swoją płeć(wpisz mezczyzna/kobieta): ")
         # diet_price = input("Wpisz kwotę którą przeznaczysz na miesięczną dietę[zł]: ")
-        weight = 50
+        weight = 80
         height = 180
         sex = "mezczyzna"
         diet_price = 1800
