@@ -9,7 +9,7 @@ class Diet(object):
         self.height = height
         self.sex = sex
         self.price = price
-        self.max_searching_counter = 1000000
+        self.max_searching_counter = 100000
 
     def kilocalorie_demand_for_month(self):
         return int((33 * self.weight) * 30)
@@ -48,6 +48,14 @@ class Diet(object):
                                                         makroelements["bialko"] / 30,
                                                         makroelements["tluszcz"],
                                                         makroelements["tluszcz"] / 30))
+
+    def get_all_products_from_csv(self):
+        all_products = []
+        with open(self.file_with_products, encoding="utf8") as file:
+            products = csv.reader(file, delimiter=",")
+            for product in products:
+                all_products.append(product)
+        return all_products
 
     def get_product_from_csv(self, id):
         with open(self.file_with_products, encoding="utf8") as file:
@@ -115,7 +123,7 @@ class Diet(object):
         protein_product = self.get_products_from_csv_where_makroelement_has_value_less_than("bialko",
                                                                                             less_than_value)
         compared_list = [i for i in carbon_product if i in protein_product]
-        random_number = random.randint(0, len(compared_list))
+        random_number = random.randint(0, len(compared_list) - 1)
         random_product = compared_list[random_number]
         return random_product
 
@@ -139,7 +147,7 @@ class Diet(object):
         random_product = compared_list[random_number]
         return random_product
 
-    def create_random_diet(self):
+    def create_diet_random_algorithm(self):
         products_list = []
         actual_price = 0
         actual_carbohydrates = 0
@@ -165,7 +173,7 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
+                    self.create_diet_random_algorithm()
             elif (int(actual_carbohydrates) >= int(all_demands["weglowodany"] * 0.99)
                     and int(actual_protein) < int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
@@ -181,7 +189,7 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
+                    self.create_diet_random_algorithm()
             elif (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
                     and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
@@ -197,7 +205,7 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
+                    self.create_diet_random_algorithm()
             elif (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
                     and int(actual_protein) < int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
@@ -213,7 +221,7 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
+                    self.create_diet_random_algorithm()
             elif (int(actual_carbohydrates) >= int(all_demands["weglowodany"] * 0.99)
                     and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
@@ -229,7 +237,7 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
+                    self.create_diet_random_algorithm()
             elif (int(actual_carbohydrates) >= int(all_demands["weglowodany"] * 0.99)
                     and int(actual_protein) < int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
@@ -245,7 +253,7 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
+                    self.create_diet_random_algorithm()
             elif (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
                     and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
                     and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
@@ -261,8 +269,60 @@ class Diet(object):
                 if self.check_if_actual_price_not_exceed_given_price(actual_price):
                     continue
                 else:
-                    self.create_random_diet()
-        information = [int(actual_carbohydrates), int(actual_protein), int(actual_fat * 0.95), int(actual_price)]
+                    self.create_diet_random_algorithm()
+        information = [int(actual_carbohydrates), int(actual_protein), int(actual_fat), int(actual_price)]
+        return products_list, information
+
+    def create_diet_greedy_algorithm(self):
+        products_list = []
+        actual_price, actual_carbohydrates, actual_protein, actual_fat = 0, 0, 0, 0
+        carbohydrates_best_ratio, protein_best_ratio, fat_best_ratio = [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]
+        all_demands = self.makroelements_demand_for_month()
+        all_products = self.get_all_products_from_csv()
+        print(all_products)
+        for product in all_products:
+            carbohydrates_ratio = float(product[3]) / float(product[4])
+            protein_ratio = float(product[1]) / float(product[4])
+            fat_ratio = float(product[2]) / float(product[4])
+            if float(carbohydrates_ratio) > float(carbohydrates_best_ratio[3]):
+                carbohydrates_best_ratio = product
+            if float(protein_ratio) > float(protein_best_ratio[1]):
+                protein_best_ratio = product
+            if float(fat_ratio) > float(fat_best_ratio[2]):
+                fat_best_ratio = product
+        while int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99):
+            products_list.append(carbohydrates_best_ratio[0])
+            actual_carbohydrates += float(carbohydrates_best_ratio[3])
+            actual_protein += float(carbohydrates_best_ratio[1])
+            actual_fat += float(carbohydrates_best_ratio[2])
+            actual_price += float(carbohydrates_best_ratio[4])
+            if self.check_if_actual_price_not_exceed_given_price(actual_price):
+                continue
+            else:
+                self.create_diet_greedy_algorithm()
+        while int(actual_protein) < int(all_demands["bialko"] * 0.99):
+            protein_best_ratio = self.get_product_from_csv_where_carbo_and_fat_is_less_than(1.0)
+            products_list.append(protein_best_ratio[0])
+            actual_carbohydrates += float(protein_best_ratio[3])
+            actual_protein += float(protein_best_ratio[1])
+            actual_fat += float(protein_best_ratio[2])
+            actual_price += float(protein_best_ratio[4])
+            if self.check_if_actual_price_not_exceed_given_price(actual_price):
+                continue
+            else:
+                self.create_diet_greedy_algorithm()
+        while int(actual_fat) < int(all_demands["tluszcz"] * 0.99):
+            fat_best_ratio = self.get_product_from_csv_where_catbo_and_protein_is_less_than(1.0)
+            products_list.append(fat_best_ratio[0])
+            actual_carbohydrates += float(fat_best_ratio[3])
+            actual_protein += float(fat_best_ratio[1])
+            actual_fat += float(fat_best_ratio[2])
+            actual_price += float(fat_best_ratio[4])
+            if self.check_if_actual_price_not_exceed_given_price(actual_price):
+                continue
+            else:
+                self.create_diet_greedy_algorithm()
+        information = [int(actual_carbohydrates), int(actual_protein), int(actual_fat), int(actual_price)]
         return products_list, information
 
 
