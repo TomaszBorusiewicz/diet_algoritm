@@ -10,24 +10,25 @@ def display_menu():
     print("1. Stwórz dietę (algorytm losowy)")
     print("2. Stwórz dietę (algorytm losowy z opcją najtańszej/najdroższej diety)")
     print("3. Stwórz dietę (algorytm zachłanny)")
-    print("4. Wyjdz z kreatora")
+    print("4. Stwórz dietę (algorytm zachłanny lepsze dopasowanie do ceny)")
+    print("5. Wyjdz z kreatora")
 
 
 while True:
     display_menu()
-    # choice = input("Wybierz co chcesz zrobić 1/2/3/4: ")
-    choice = "3"
-    if choice == "4":
+    choice = input("Wybierz co chcesz zrobić 1/2/3/4: ")
+    # choice = "3"
+    if choice == "5":
         exit(0)
-    elif choice == "1" or choice == "2" or choice == "3":
-        # weight = input("Podaj swoją wagę[kg]: ")
+    elif choice == "1" or choice == "2" or choice == "3" or choice == "4":
+        # weight = float(input("Podaj swoją wagę[kg]: "))
         # height = input("Podaj swoj wzrost[cm]: ")
         # sex = input("Podaj swoją płeć(wpisz mezczyzna/kobieta): ")
-        # diet_price = input("Wpisz kwotę którą przeznaczysz na miesięczną dietę[zł]: ")
+        # diet_price = float(input("Wpisz kwotę którą przeznaczysz na miesięczną dietę[zł]: "))
         weight = 80
         height = 180
         sex = "mezczyzna"
-        diet_price = 10000
+        diet_price = 1500
         diet = Diet(weight=weight,
                     height=height,
                     sex=sex,
@@ -57,9 +58,9 @@ while True:
             time_after = time.time()
             choosen_price = input("Którą opcję wybierasz? (wpisz najtansza/najdrozsza): ")
             if choosen_price == "najtansza":
-                diets_list.sort(key=lambda x: x[1][3])
+                diets_list.sort(key=lambda x: float(x[1][3]))
             elif choosen_price == "najdrozsza":
-                diets_list.sort(key=lambda x: x[1][3], reverse=True)
+                diets_list.sort(key=lambda x: float(x[1][3]), reverse=True)
             else:
                 "wpisano złą wartość."
                 continue
@@ -84,8 +85,19 @@ while True:
             for i in countered_diet_lists:
                 print("{}  {} gram".format(i, countered_diet_lists[i] * 100))
             print("czas szukania: {} sekund".format(math.floor(time_after - time_before)))
-            exit(0)
 
+        elif choice == "4":
+            time_before = time.time()
+            chosen_diet = diet.create_diet_greedy_algorithm_fit_to_price(diet_price)
+            time_after = time.time()
+            countered_diet_lists = collections.Counter(chosen_diet[0])
+            print("==================================================================================")
+            print("Makroelementy na miesiąc w znalezionej diecie:\nWęglowodany: {} gram\nBiałko: {} gram"
+                  "\nTłuszcz: {} gram\nCena diety {} złotych".format(chosen_diet[1][0], chosen_diet[1][1],
+                                                                     chosen_diet[1][2], chosen_diet[1][3]))
+            for i in countered_diet_lists:
+                print("{}  {} gram".format(i, countered_diet_lists[i] * 100))
+            print("czas szukania: {} sekund".format(math.floor(time_after - time_before)))
     else:
         print("wpisano nieprawidłową wartość, spróbuj ponownie")
         time.sleep(1)
