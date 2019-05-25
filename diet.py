@@ -31,8 +31,8 @@ class Diet(object):
         protein = self.protein_demand_for_month()
         fat = self.fat_demand_for_month()
         carbohydrate = self.carbohydrate_demand_for_month()
-        demands = {"kilokalorie": kilocalories, "weglowodany": carbohydrate,
-                   "bialko": protein, "tluszcz": fat}
+        demands = {"kilokalorie": kilocalories, "carbo": carbohydrate,
+                   "protein": protein, "fat": fat}
         return demands
 
     def print_monthly_mekroelements_demand(self):
@@ -42,25 +42,29 @@ class Diet(object):
               "Białko: {} gram (dziennie: {})\n"
               "Tłuszcze: {} gram (dziennie: {})".format(int(makroelements["kilokalorie"]),
                                                         int(makroelements["kilokalorie"] / 30),
-                                                        int(makroelements["weglowodany"]),
-                                                        int(makroelements["weglowodany"] / 30),
-                                                        int(makroelements["bialko"]),
-                                                        int(makroelements["bialko"] / 30),
-                                                        int(makroelements["tluszcz"]),
-                                                        int(makroelements["tluszcz"] / 30)))
+                                                        int(makroelements["carbo"]),
+                                                        int(makroelements["carbo"] / 30),
+                                                        int(makroelements["protein"]),
+                                                        int(makroelements["protein"] / 30),
+                                                        int(makroelements["fat"]),
+                                                        int(makroelements["fat"] / 30)))
 
     def split_products_for_3_lists(self, products):
         most_carbo = []
         most_protein = []
         most_fat = []
+        dicto = {}
         for product in products:
-            if product[1] > product[2] and product[1] > product[3]:
+            if float(product[1]) > float(product[2]) and float(product[1]) > float(product[3]):
                 most_protein.append(product)
-            elif product[2] > product[1] and product[2] > product[3]:
+            elif float(product[2]) > float(product[1]) and float(product[2]) > float(product[3]):
                 most_fat.append(product)
             else:
                 most_carbo.append(product)
-        return most_carbo, most_protein, most_fat
+        dicto["carbo"] = most_carbo
+        dicto["protein"] = most_protein
+        dicto["fat"] = most_fat
+        return dicto
 
     def get_all_products_from_csv(self):
         all_products = []
@@ -83,15 +87,6 @@ class Diet(object):
             row_count = sum(1 for row in products)
         random_id = random.randint(0, row_count)
         return self.get_product_from_csv(random_id)
-
-    # def check_if_actual_price_not_exceed_given_price(self, actual_price):
-    #     if self.max_searching_counter > 0:
-    #         self.max_searching_counter -= 1
-    #         if actual_price < self.price:
-    #             return True
-    #     else:
-    #         print("program nie potrafi znaleść diety dla podanego zakresu cenowego")
-    #         exit(0)
 
     def get_makros_info_based_on_name(self, product_name):
         with open(self.file_with_products, encoding="utf8") as file:
@@ -206,155 +201,100 @@ class Diet(object):
                 fat_best_ratio_product = product
         return fat_best_ratio_product
 
-    def create_diet_random_algorithm(self):
+    def get_product_with_best_ratio(self,product_type, products_list):
+        best_product = []
+        ratio = 0
+        if product_type == "carbo":
+            for product in products_list:
+                if float(product[3]) / float(product[4]) \
+                        > ratio:
+                    best_product = product
+                    ratio = float(product[3]) / float(product[4])
+        if product_type == "protein":
+            for product in products_list:
+                if float(product[1]) / float(product[4]) \
+                        > ratio:
+                    best_product = product
+                    ratio = float(product[1]) / float(product[4])
+        if product_type == "fat":
+            for product in products_list:
+                if float(product[2]) / float(product[4]) \
+                        > ratio:
+                    best_product = product
+                    ratio = float(product[2]) / float(product[4])
+        return best_product
+
+    def get_product_from_given_dict_random(self, dictionary):
+        return random.choice(dictionary[random.choice(list(dictionary))])
+
+    def get_product_from_given_dict_greedy(self, dictionary):
+        macro_item = random.choice(list(dictionary))
+        return self.get_product_with_best_ratio(product_type=macro_item, products_list=dictionary[macro_item])
+
+    def create_diet(self, algorithm):
         products_list = []
-        actual_price = 0
-        actual_carbohydrates = 0
-        actual_protein = 0
-        actual_fat = 0
-        break_points = [x for x in range(10, 100, step=10)]
+        carbo_break_point, protein_break_point, fat_break_point = 10, 10, 10
         actual_macros_and_price = {"carbo": 0, "protein": 0, "fat": 0, "price": 0}
         demands_macros = self.makroelements_demand_for_month()
         all_products = self.get_all_products_from_csv()
-        splited_products = self.split_products_for_3_lists(products=all_products)
-        while actual_macros_and_price["price"] < float(self.price):
-            product = self.get_random_product_from_csv()
+        items_to_choose = self.split_products_for_3_lists(products=all_products)
+        items_not_to_choose = {}
+        while (actual_macros_and_price["price"] < float(self.price)) \
+                and (float(actual_macros_and_price["carbo"] < float(demands_macros["carbo"]))
+                     or float(actual_macros_and_price["protein"] < float(demands_macros["protein"]))
+                     or float(actual_macros_and_price["fat"] < float(demands_macros["fat"]))):
+            if len(items_to_choose) == 0:
+                items_to_choose["carbo"] = items_not_to_choose["carbo"]
+                items_to_choose["protein"] = items_not_to_choose["protein"]
+                items_to_choose["fat"] = items_not_to_choose["fat"]
+            if algorithm == "random":
+                product = self.get_product_from_given_dict_random(items_to_choose)
+            elif algorithm == "greedy":
+                product = self.get_product_from_given_dict_greedy(items_to_choose)
+            if product is None:
+                continue
             products_list.append(product[0])
             actual_macros_and_price["carbo"] += float(product[3])
             actual_macros_and_price["protein"] += float(product[1])
             actual_macros_and_price["fat"] += float(product[2])
             actual_macros_and_price["price"] += float(product[4])
+            if "carbo" in items_to_choose.keys() \
+                    and (int(actual_macros_and_price["carbo"]) > (int(demands_macros["carbo"])
+                                                                  * carbo_break_point) / 100):
+                del_items = items_to_choose["carbo"]
+                items_not_to_choose["carbo"] = del_items
+                del items_to_choose["carbo"]
+                if carbo_break_point == 100:
+                    continue
+                else:
+                    carbo_break_point += 10
+            if "protein" in items_to_choose.keys() \
+                    and (int(actual_macros_and_price["protein"]) > (int(demands_macros["protein"])
+                                                                    * protein_break_point) / 100):
+                del_items = items_to_choose["protein"]
+                items_not_to_choose["protein"] = del_items
+                del items_to_choose["protein"]
+                if protein_break_point == 100:
+                    continue
+                else:
+                    protein_break_point += 10
+            if "fat" in items_to_choose.keys() \
+                    and (int(actual_macros_and_price["fat"]) > (int(demands_macros["fat"]) * fat_break_point) / 100):
+                del_items = items_to_choose["fat"]
+                items_not_to_choose["fat"] = del_items
+                del items_to_choose["fat"]
+                if fat_break_point == 100:
+                    continue
+                else:
+                    fat_break_point += 10
 
+        return products_list, actual_macros_and_price
 
-        while (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
-               or int(actual_protein) < int(all_demands["bialko"] * 0.99)
-               or int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
-
-            if int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)\
-                    and int(actual_protein) < int(all_demands["bialko"] * 0.99)\
-                    and int(actual_fat) < int(all_demands["tluszcz"] * 0.99):
-                try:
-                    random_product = self.get_random_product_from_csv()
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-            elif (int(actual_carbohydrates) >= int(all_demands["weglowodany"] * 0.99)
-                    and int(actual_protein) < int(all_demands["bialko"] * 0.99)
-                    and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
-                try:
-                    random_product = self.get_product_from_csv_where_catbo_is_less_than(2.0)
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-            elif (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
-                    and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
-                    and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
-                try:
-                    random_product = self.get_product_from_csv_where_protein_is_less_than(2.0)
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-            elif (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
-                    and int(actual_protein) < int(all_demands["bialko"] * 0.99)
-                    and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
-                try:
-                    random_product = self.get_product_from_csv_where_fat_is_less_than(2.0)
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-            elif (int(actual_carbohydrates) >= int(all_demands["weglowodany"] * 0.99)
-                    and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
-                    and int(actual_fat) < int(all_demands["tluszcz"] * 0.99)):
-                try:
-                    random_product = self.get_product_from_csv_where_catbo_and_protein_is_less_than(2.0)
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-            elif (int(actual_carbohydrates) >= int(all_demands["weglowodany"] * 0.99)
-                    and int(actual_protein) < int(all_demands["bialko"] * 0.99)
-                    and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
-                try:
-                    random_product = self.get_product_from_csv_where_carbo_and_fat_is_less_than(2.0)
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-            elif (int(actual_carbohydrates) < int(all_demands["weglowodany"] * 0.99)
-                    and int(actual_protein) >= int(all_demands["bialko"] * 0.99)
-                    and int(actual_fat) >= int(all_demands["tluszcz"] * 0.99)):
-                try:
-                    random_product = self.get_product_from_csv_where_protein_and_fat_is_less_than(2.0)
-                    actual_carbohydrates += float(random_product[3])
-                    actual_protein += float(random_product[1])
-                    actual_fat += float(random_product[2])
-                    actual_price += float(random_product[4])
-                    products_list.append(random_product[0])
-                except TypeError:
-                    continue
-        information = [int(actual_carbohydrates), int(actual_protein), int(actual_fat), int(actual_price)]
-        return products_list, information
+    def create_diet_random_algorithm(self):
+        return self.create_diet(algorithm="random")
 
     def create_diet_greedy_algorithm(self):
-        products_list = []
-        actual_price, actual_carbohydrates, actual_protein, actual_fat = 0, 0, 0, 0
-        carbohydrates_best_ratio, protein_best_ratio, fat_best_ratio = [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]
-        all_demands = self.makroelements_demand_for_month()
-        all_products = self.get_all_products_from_csv()
-        for product in all_products:
-            carbohydrates_ratio = float(product[3]) / float(product[4])
-            protein_ratio = float(product[1]) / float(product[4])
-            fat_ratio = float(product[2]) / float(product[4])
-            if float(carbohydrates_ratio) > float(carbohydrates_best_ratio[3]):
-                carbohydrates_best_ratio = product
-            if float(protein_ratio) > float(protein_best_ratio[1]):
-                protein_best_ratio = product
-            if float(fat_ratio) > float(fat_best_ratio[2]):
-                fat_best_ratio = product
-        while int(actual_carbohydrates) < int(all_demands["weglowodany"]):
-            products_list.append(carbohydrates_best_ratio[0])
-            actual_carbohydrates += float(carbohydrates_best_ratio[3])
-            actual_protein += float(carbohydrates_best_ratio[1])
-            actual_fat += float(carbohydrates_best_ratio[2])
-            actual_price += float(carbohydrates_best_ratio[4])
-        while int(actual_protein) < int(all_demands["bialko"]):
-            protein_best_ratio = self.get_product_from_csv_with_best_protein_ratio(1.0)
-            products_list.append(protein_best_ratio[0])
-            actual_carbohydrates += float(protein_best_ratio[3])
-            actual_protein += float(protein_best_ratio[1])
-            actual_fat += float(protein_best_ratio[2])
-            actual_price += float(protein_best_ratio[4])
-        while int(actual_fat) < int(all_demands["tluszcz"]):
-            fat_best_ratio = self.get_product_from_csv_with_best_fat_ratio(1.0)
-            products_list.append(fat_best_ratio[0])
-            actual_carbohydrates += float(fat_best_ratio[3])
-            actual_protein += float(fat_best_ratio[1])
-            actual_fat += float(fat_best_ratio[2])
-            actual_price += float(fat_best_ratio[4])
-        information = [int(actual_carbohydrates), int(actual_protein), int(actual_fat), int(actual_price)]
-        return products_list, information
+        return self.create_diet(algorithm="greedy")
 
     def create_diet_greedy_algorithm_fit_to_price(self, diet_price):
         greedy_diet = self.create_diet_greedy_algorithm()
