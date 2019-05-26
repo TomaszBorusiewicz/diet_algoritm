@@ -240,9 +240,9 @@ class Diet(object):
         items_to_choose = self.split_products_for_3_lists(products=all_products)
         items_not_to_choose = {}
         while (actual_macros_and_price["price"] < float(self.price)) \
-                and (float(actual_macros_and_price["carbo"] < float(demands_macros["carbo"]))
-                     or float(actual_macros_and_price["protein"] < float(demands_macros["protein"]))
-                     or float(actual_macros_and_price["fat"] < float(demands_macros["fat"]))):
+                and (float(actual_macros_and_price["carbo"] < float(demands_macros["carbo"] * 0.999))
+                     or float(actual_macros_and_price["protein"] < float(demands_macros["protein"] * 0.999))
+                     or float(actual_macros_and_price["fat"] < float(demands_macros["fat"] * 0.999))):
             if len(items_to_choose) == 0:
                 items_to_choose["carbo"] = items_not_to_choose["carbo"]
                 items_to_choose["protein"] = items_not_to_choose["protein"]
@@ -288,7 +288,7 @@ class Diet(object):
                 else:
                     fat_break_point += 10
 
-        return products_list, actual_macros_and_price
+        return products_list, actual_macros_and_price, algorithm
 
     def create_diet_random_algorithm(self):
         return self.create_diet(algorithm="random")
